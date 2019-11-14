@@ -1,0 +1,379 @@
+#+TITLE: Wejo Autumn 2019
+* Introductions
+** Noel Welsh
+Machine learning and programming languages
+Scala for 10 years
+** Paul
+5-6wks at Wejo
+Data analyst / scientist
+Databricks / Spark
+Moving from R
+SO not useful
+Enabling data science
+** Hugh
+3.5wks at Wejo
+Software bootcamp (North Coders)
+- Javascript
+A bit of Scala in the last few weeks
+Farming and maths
+** Michael
+3.5wks at Wejo
+North Coders (JS)
+Studying CS at OU (Java, Python)
+Ingress of data, Kafka, Spark Streaming
+Fresh food sales
+** Alex
+9wks at Wejo
+North Coders (JS)
+1 year as web apps developers (JS, Go)
+Started Scala in July
+Data egress / data engineering
+Pure maths background
+** Dave
+6months at Wejo
+Started in ingress, then data science (data engineering support)
+Back in ingress, relearning Scala
+Data engineer: SQL, Java, Mongo, Kafka
+* Example Project
+github.com/underscoreio/wejo-autumn-2019/
+* Overview
+** What We're Doing
+Learn Scala in terms of problems it solves
+- representing data
+- sequencing computations
+- type classes
+** How We're Doing It
+Work in groups of 2 or 3
+** Other Resources
+Essential Scala (underscore.io/books/)
+** Times
+Lunch 1pm
+* WWKCD?
+- Science
+- Logic
+- Appeal to authority
+- Algebraic data types
+- Structural recursion
+- Church encoding and reification
+* Problem Solving Strategies
+- Where is the toilet?
+  Look for signs
+  Ask someone
+- What is the weather, right here and right now?
+  Ask someone
+  Look it up on Google
+  Look out a window
+- What do the interior angles of a triangle sum to?
+  Look up a formula
+  Measure it
+  Prove it: Euclid
+
+  Proof: Logic (or Maths)
+  - programs are proofs (Curry Howard isomorphism)
+  - semi-formal models
+  - types
+  - certainty: true for all cases for which defined
+
+  Evidence: Science
+  - unit tests
+  - debugging
+  - logging
+  - cheaper / easier
+  - true for the conditions under which the evidence is collected (but possibly doesn't generalize)
+
+  Appeal to authority
+  - ask someone
+  - use existing code
+  - StackOverflow / Google etc.
+  - Code reviews
+  - Good way to get started
+  - Find alternatives you wouldn't otherwise consider
+  - Can be faster
+  - Unreliable
+* Expressions Types and Values
+- Expressions
+  An expression is program code that evaluates to a value
+  - Value is something in the computer's memory
+  - Expression is program text
+    1 + 1 =evaluates to=> 2
+  - Types
+    A set of a values
+    Constraints on the values an expression can evaluate to
+    Expressions have types. Values do not. Values have tags. If they don't have tags we say the types are erased.
+
+    Type of the expression and the value is evaluates to for?:
+    4 / 2: type Int
+    1 / 2: type Int
+    1 / 0: type Int but does not evaluate to a value
+
+    What strategies did you use to come to these answers?
+- Compile-time and run-time
+  Program =compile=> Bytecode =evaluate=> Values
+- What is Option?
+  It's a value
+- What are the characteristics of values?
+  - Give them a name using ~val~
+  - Pass them as a parameter to a method
+  - Return them from a method
+    "First class" values
+- Declarations
+  Everything else
+* Substitution and Local Reasoning
+- What makes good code?
+  - Works
+  - Terse
+  - Easier to maintain and read
+    - self documenting
+    - reading input and output tells you what a program does (types)
+    - naming conventions
+    - structure
+    - not overly complex. not over-engineered
+  - Reliable
+    - Demonstrable: produces output to validate utility (test coverage)
+  - Reusable
+** Local Reasoning
+Local reasoning means you can look at a piece of code in isolation and understand what it will do.
+
+#+BEGIN_SRC scala
+object Example {
+  var x = 1
+  def doSomething(): String =
+    if(x > 5) "yes!" else "no!"
+}
+#+END_SRC
+** Substitution Model of Evaluation
+x = 5
+y = x + 5
+y = 10
+
+#+BEGIN_SRC scala
+val x = 5
+val y = x + 5
+val redCircle1 = Image
+  .circle(10)
+  .fillColor(Color.red)
+
+val circle = Image.circle(10)
+val redCircle2 = circle.fillColor(Color.red)
+#+END_SRC
+
+Side effects break substitution
+Effects (controlled side effects) don't break substitution
+
+Units generally indicate (side) effects
+()
+** Commonly Confused Types
+- Unit: one value, indicates no interesting result to return. Usually means a side effect happens.
+
+- Null: an uninitialized value. Comes from Java.
+
+- Nil: the empty list
+
+- Nothing: the subtype of all types. There are no values of type nothing
+
+- Any: the supertype of all types.
+ 
+- Option/Some/None: represents an optional value in a way that uses the type system
+* Algebraic Data Types and Structural Recursion
+Logical ors and logical ands
+- Logical or is a sum type
+- Logical and is a product type
+
+If A is a B or C
+#+BEGIN_SRC scala
+sealed trait A
+final case class B() extends A
+final case class C() extends A
+#+END_SRC
+
+If A is a B and C
+#+BEGIN_SRC scala
+final case class A(b: B, c: C)
+#+END_SRC
+
+Sealed trait is a ~trait~ that can only be extended within the file in which it is declared.
+
+A trait declares an interface and optionally have implementations of the methods in the interface.
+
+#+BEGIN_SRC scala
+trait Calculator {
+  def add(a: Double, b: Double): Double
+  def subtract(a: Double, b: Double): Double
+  def multiply(a: Double, b: Double): Double
+  def divide(a: Double, b: Double): Double
+}
+trait DoubleCalculator extends Calculator {
+  def add(a: Double, b: Double): Double =
+    a + b
+  def subtract(a: Double, b: Double): Double =
+    a - b
+  def multiply(a: Double, b: Double): Double =
+    a * b
+  def divide(a: Double, b: Double): Double =
+    a / b
+}
+val calc = new DoubleCalculator
+#+END_SRC
+
+final case class:
+- final means you cannot extend it
+- case class is a class with some nice utilities
+  - a ~toString~ method
+  - value equality and a hashCode method
+  - convenience constructors
+  - pattern matching
+** ADTs are Closed Worlds
+Gives safety properties.
+** Structural Recursion
+What is the structure of JSON?
+Json is an Object or a String or a Number or a Array
+#+BEGIN_SRC scala
+sealed trait Json
+final case class JObject(values: Map[String, Json]) extends Json
+final case class JString(value: String) extends Json
+final case class JNumber(value: Double) extends Json
+final case class JArray(elements: List[Json]) extends Json
+
+def prettyPrint(json: Json): String = ???
+#+END_SRC
+
+Any transformation on an ADT can be implemented with structural recursion. Two implementation strategies:
+- polymorphism / dynamic dispatch
+- pattern matching
+
+A is a B or C, implement a method using polymorphism
+#+BEGIN_SRC scala
+sealed trait A {
+  // abstract method
+  // declares types: what comes in and what goes out
+  def aMethod: D
+}
+final case class B() extends A {
+  // concrete implementations on the concrete subtypes
+  def aMethod: D = ???
+}
+final case class C() extends A {
+  def aMethod: D = ???
+}
+#+END_SRC
+
+A is a B or C,
+B is a D and E
+C is a F and G
+implement a method using pattern matching
+#+BEGIN_SRC scala
+sealed trait A {
+  // declaring within the trait
+  def aMethod: D =
+    this match {
+      case B(d, e) => ???
+      case C(f, g) => ???
+    }
+}
+final case class B(d: D, e: E) extends A
+final case class C(f: F, g: G) extends A
+
+
+// Declare outside the trait
+object Example {
+  def aMethod(a: A): D =
+    a match {
+      case B(d, e) => ???
+      case C(f, g) => ???
+    }
+}
+#+END_SRC
+
+Pattern matching expressions
+- it's an expression, evaluates to a value
+#+BEGIN_SRC scala
+<anExpr> match {
+  case <pattern1> => <rhsExpr1>
+  case <pattern2> => <rhsExpr2>
+  ...
+}
+#+END_SRC
+
+Types of patterns:
+- _  --- match anything and don't give it a name
+- someWordStartingWithLowercase --- match anything and give the name someWordStartingWithLowercase to the value matched within the corresponding right hand side expression
+- ACaseClassName --- match a case class of the given type
+
+When the data is recursive, the method is also recursive.
+*** Option
+Option is a Some or None
+MaybeInt is a Full or Empty. Full has an Int
+#+BEGIN_SRC scala
+sealed trait MaybeInt {
+  def isFull: Boolean =
+    this match {
+      case Full(v) => true
+      case Empty() => false
+    }
+
+  def add(x: Int): MaybeInt =
+    this match {
+      case Full(v) => Full(v + x)
+      case Empty() => Empty()
+    }
+}
+final case class Full(value: Int) extends MaybeInt
+final case class Empty() extends MaybeInt
+#+END_SRC
+*** List
+IntList is Empty or Pair
+Pair has a head that is an Int and a tail that is an IntList
+#+BEGIN_SRC scala
+sealed trait IntList {
+  def length: Int =
+    this match {
+      case Pair(h, t) => 1 + t.length
+      case Empty() => 0
+    }
+  def sum: Int
+  def contains(x: Int): Boolean
+}
+final case class Pair(head: Int, tail: IntList) extends IntList
+final case class Empty() extends IntList
+#+END_SRC
+* OO vs FP Extensibility
+Classic FP = algebraic data types
+Classic OO = extending traits
+
+ADT:
+- can we extend the data without modifying existing source code? No
+- can we add new functionality w/o modifying source? Yes
+
+OO:
+- can we extend data? Yes
+- can we extend functionality? No
+
+Can we do both? Yes
+Expression problem
+- tagless final
+- free monad / data types ala carte
+
+Implement an interface for a calculator with operations +,-,/,*
+
+An Expression is:
+- Addition of an expression and an expression OR
+- Subtraction of an expression and an expression OR
+- Multiplication of an expression and an expression OR
+- Division of an expression and an expression OR
+- A literal number
+
+#+BEGIN_SRC scala
+trait Expression {
+  def add(a: Double, b: Double): Double
+  def subtract(a: Double, b: Double): Double
+  def multiply(a: Double, b: Double): Double
+  def divide(a: Double, b: Double): Double
+}
+
+sealed trait Expression
+final case class Add(a: Expression, b: Expression) extends Expression
+final case class Literal(value: Double) extends Expression
+#+END_SRC
+
+Church encoding: turn data into functions (FP => OO)
+Reification: turn functions into data (OO => FP)
