@@ -55,6 +55,8 @@ Lunch 1pm
 - Algebraic data types
 - Structural recursion
 - Church encoding and reification
+- Follow the types
+- Sequencing operations
 * Problem Solving Strategies
 - Where is the toilet?
   Look for signs

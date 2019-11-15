@@ -1,0 +1,104 @@
+#+TITLE: Wejo Autumn 2019
+* Generic Types
+- Concrete types
+- We don't know a type but we want to let the user supply one and we'll use it consistently
+- This is a generic type
+- For all types; I don't know what the type is at the point of definition but will do at the point of use.
+- Introduce one using ~[A]~ at class or method declarations
+  #+BEGIN_SRC scala
+  trait Example[A] {
+    def someMethod[B,C] = ???
+  }
+  #+END_SRC
+
+  Use them by referring to the name
+  #+BEGIN_SRC scala
+  trait Example[A] {
+    def someMethod[B,C](b: B, c: C) = ???
+  }
+  #+END_SRC
+** Maybe
+Maybe is Full or Empty
+#+BEGIN_SRC scala
+sealed trait Maybe[A] {
+  def isDefined: Boolean =
+    this match {
+      case Full(a) => true
+      case Empty() => false
+    }
+
+  def contains(x: A): Boolean =
+    this match {
+      case Full(a) => a == x
+      case Empty() => false
+    }
+}
+final case class Full[A](value: A) extends Maybe[A]
+final case class Empty[A]() extends Maybe[A]
+#+END_SRC
+** Exercise
+Make ~IntList~ generic. Implement ~contains~, ~length~, etc.
+* Functions
+* Sequencing Operations
+~map~, ~flatMap~, ~fold~
+- Operations on containers
+  - map is transform the data within the container but keep the structure the same
+  - flatMap is transform data and structure
+- Operations in a context
+  - map is transform the data keeping the context
+  - flatMap is transform data and context (monad)
+
+#+BEGIN_SRC scala
+final case class User(userName: String, userId: Int)
+def lookupUser(id: Int): Maybe[User] = ???
+
+val maybeUser: Maybe[User] = lookupUser(1)
+maybeUser.map(user => user.userName): Maybe[String]
+
+def lookupLastJourney(user: User): Maybe[Journey] = ???
+
+maybeUser.flatMap(user => lookupLastJourney(user))
+#+END_SRC
+** Fold
+Realization in code of the structural recursion pattern. The universal function (can do anything) for an algebraic data type.
+
+For lists we have ~foldleft~ and ~foldRight~ to left to right or vice versa.
+* Type Classes
+ADTS are closed worlds: can extend functionality but not data
+OO interface are open worlds: can extend data but not functionality
+
+Type classes achieve both forms of extensibility
+- We can add functionality to data we don't control the source for (e.g. things in the standard library)
+- We can define different implementations of the functionality for a given type
+- We can define one type class in terms of others, there by extending functionality
+
+Json serialization.
+- Want to serialzie ~Date~. We don't control the source.
+- Serialize ~Password~ in different context: UI---don't send it; Database---store it in a hashed version
+
+#+BEGIN_SRC scala
+trait JsonWriter[A] {
+  def write(value: A): Json
+}
+
+def serialize[A](value: A, writer: JsonWriter[A])
+#+END_SRC
+
+Type classes:
+- the type class => ~trait~
+- type class instances (implementations for concrete types) => implicit value
+- type class usage => implicit parameter
+
+Implicit parameters
+- parameter list that starts with the keyword ~implicit~
+- applies to all parameters in that list
+- if we do not explicitly provide parameters when calling the method the compiler will attempt to supply them
+- the compiler will only look for /implicit values/ in the /implicit scope/
+
+Implicit value:
+- ~val~, ~object~, or a ~def~ with only implicit parameters
+- precede declaration with the keyword ~implicit~
+
+Implicit scope:
+- usual lexical scope
+- plus companion objects of involved types
