@@ -94,11 +94,16 @@ Implicit parameters
 - applies to all parameters in that list
 - if we do not explicitly provide parameters when calling the method the compiler will attempt to supply them
 - the compiler will only look for /implicit values/ in the /implicit scope/
+- Conceptually: this method requires a type class instance to work. A type class instance must be available when this method is called.
 
 Implicit value:
-- ~val~, ~object~, or a ~def~ with only implicit parameters
+- ~val~, ~object~, or a ~def~ with only implicit parameters that implement or return an instance of the type class.
 - precede declaration with the keyword ~implicit~
 
 Implicit scope:
 - usual lexical scope
 - plus companion objects of involved types
+
+Composition is the real power!
+** Exercises
+Implement ~JsonWriter[Double]~ and implement ~JsonWriter[Option[A]]~ where there is a ~JsonWriter[A]~. I.e. implement a type class instance of ~JsonWriter~ for ~Double~ and for ~Option[A]~ (where ~A~ must have a ~JsonWriter~).
