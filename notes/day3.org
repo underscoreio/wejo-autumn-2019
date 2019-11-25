@@ -20,7 +20,7 @@ FP concepts
 * Overview
 * Review
 ** Algebraic Data Types
-Logical ands and logical ors
+Represent data in terms of logical ands and logical ors
 
 Logical and
 A is a B and C
@@ -83,9 +83,174 @@ final case class C() extends A {
 }
 #+END_SRC
 ** Map and FlatMap
+Conceptual understanding:
+- transforming values within a context
+- sequencing: doing one thing after another
+
+map: F[A] (A => B) = F[B]
+flatMap: F[A] (A => F[B]) = F[B]
+
+for comprehension
+for {
+  a <- fa
+  b <- fb
+  c <- fc
+} yield c
 ** Fold
 ** Type Classes
+|---------------------+-----------------------------|
+| Conceptual          | Scala Implementation        |
+|---------------------+-----------------------------|
+| Type class          | trait with a type parameter |
+| Type class instance | implicit values             |
+| Type class usage    | implicit parameters         |
+|---------------------+-----------------------------|
+| Useful syntax       | implicit class              |
+|---------------------+-----------------------------|
+#+BEGIN_SRC scala
+// type class
+trait JsonWriter[A] {
+  def write(in: A): Json
+}
+object JsonWriter {
+  implicit val intJsonWriter: JsonWriter[Int] =
+    new JsonWriter[Int] {
+      def write(in: Int): Json =
+        JsonNumber(in)
+    }
+
+  implicit object stringJsonWriter extends JsonWriter[String] {
+    def write(in: String): Json =
+      JsonString(in)
+  }
+
+  implicit def optionJsonWriter[A](implict w: JsonWriter[A]): JsonWriter[Option[A]] =
+    new JsonWriter[Option[A]] {
+      def write(in: Option[A]): Json =
+        in match {
+          case None => JsonNull
+          case Some(v) => w.write(v)
+        }
+    }
+}
+
+object Json {
+  def toJson[A](in: A)(implicit w: JsonWriter[A]): Json =
+    w.write(in)
+}
+#+END_SRC
+
+The compiler will provide parameters to an implicit parameter list if we don't provide them ourselves
+
+Json.toJson(1)
+
+Compiler will fill in
+
+Json.toJson(1)(intJsonWriter)
+
+Where does the compiler find values to supply as implicit parameters?
+- any implicit values in the implicit scope
+
+Implicit values:
+- ~val~ proceeded by the keyword ~implicit~
+- ~object~ proceeded by the keyword ~implicit~
+- ~def~ proceeded by the keyword ~implicit~ with only implicit parameters, which allows type class composition
+
+Json.toJson(Option(1))
+
+Implicit scope:
+- lexical scope (usual scope)
+- companion objects of related types
+
+Continuum of types
+- algebraic data type: a specific type or family of types that cannot be extended
+- generic type (type parameter): any type
+- type class: any type that has an implementation of an interface; any type that meets certain constraints
+* FP Architecture
+Separate description from action
+- Interpreter pattern
+
+val x = 5
+val y = x + 42
+val y = 5 + 42
+
+val x = () => println("Hi!")
+val y = () => println("Hi!")
+
+val x = () => println("Hi!")
+val y = x
+
+x()
+
+- Algebra
+  A => F[A]: constructors, introduction forms
+  F[A] => F[A]: combinators
+  F[A] => A: actions / running / elimination forms
+
+- Reification
+  Abstract: take something that is abstract and make it concrete
+  Concrete: take methods and turn them into data
+
+  Reify: constructors and combinators, NOT actions
 * Monoids
+- The type class ~cats.Monoid~: find it. What does it mean?
+  A set A has a monoid if there exists:
+  - an element 0
+  - a binary operation +
+  s.t.
+
+  0 + x = x = x + 0 (identity)
+  (a + b) + c = a + (b + c) (associativity)
+
+- What are some type class instances of Monoid?
+  0 / +
+  1 / *
+  0 / max
+
+  false / or
+  true / and
+
+  "" / ++
+  List.empty / ++
+
+  {} / union
+
+  zero vector / +
+
+  f: A => B
+  g: A => B
+  have a monoid for B
+  h: a: A => f(a) |+| g(a)
+  ~cats.instances.IntInstances~
+- What is an example of use?
+  1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+  +
+  (1 1 1 1 1 1) (1 1 1) (1 1 1 1 1 1 1 1 1) (1 1 1 1 1 1) (1 1 1 1 1)
+  (1 1 1) (1 1 1) (1 1 1) (1 1 1 1 1 1) (1 1 1 1 1 1 1 1 1) (1 1 1 1 1)
+
+  Commutative: a + b = b + a
+
+  Parallel operations are always correct if we maintain order and have an associative operation
+
+  Parallel operations are always correct if we have a commutative operation
+* Cats
+Easy imports
+#+BEGIN_SRC scala
+import cats._
+import cats.implicits._
+#+END_SRC
+
+Hard imports
+#+BEGIN_SRC scala
+import cats.instances.<theAppropriateType>._
+import cats.syntax.<theAppropriateType>._
+#+END_SRC
 * Monads
+A type constructor F has a monad if there exists:
+- flatMap: F[A] (A => B) : F[B]
+- pure: A : F[A]
+
+Implement a type class instance of ~Monad~ for ~Stream~
+- an implicit value
 * Parallel
 * Cats Effect
