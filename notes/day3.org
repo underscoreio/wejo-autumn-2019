@@ -1,0 +1,91 @@
+#+TITLE: Wejo Autumn 2019: Cats et al
+* Introductions
+** Noel
+9 years Scala (approx)
+Machine learning, PL, computational media
+Help you achieve your goals
+** Claudia
+1.5 yrs Scala
+Tinkering and learning how things work under the hood
+Don't be allergic to Cats
+** Alex
+1 month at Wejo
+No commercial Scala experience
+Python background
+Clearer understanding of Scala
+** Harry
+2.5 yrs Scala
+Not used Cats much
+FP concepts
+* Overview
+* Review
+** Algebraic Data Types
+Logical ands and logical ors
+
+Logical and
+A is a B and C
+#+BEGIN_SRC scala
+final case class A(b: B, c: C)
+#+END_SRC
+
+Logical or
+A is a B or C
+#+BEGIN_SRC scala
+sealed trait A
+final case class B() extends A
+final case class C() extends A
+#+END_SRC
+
+Closed world
+** Structural Recursion
+Transform an algebraic data type into anything else
+
+- Pattern matching
+- Polymorphism
+
+A is a B or C (pattern matching)
+#+BEGIN_SRC scala
+anA match {
+  case B() => ???
+  case C() => ???
+}
+sealed trait A {
+  def doSomething: D =
+    this match {
+      case B() => ???
+      case C() => ???
+    }
+}
+final case class B() extends A
+final case class C() extends A
+#+END_SRC
+
+When the data is recursive the method is recursive
+
+Pattern language:
+- ~_~: match anything but don't give it a name
+- ~name~ (wildcard): match anything and give it the name in the RHS
+- case classes: ~Name(param1, param2, ...)~ where ~param1~. etc is a pattern
+- literals: a literal matches itself (e.g. ~4~)
+
+A is a B or C (polymorphism)
+#+BEGIN_SRC scala
+sealed trait A {
+  def doSomething: D
+}
+final case class B() extends A {
+  def doSomething: D =
+    ???
+}
+final case class C() extends A {
+  def doSomething: D =
+    ???
+}
+#+END_SRC
+** Map and FlatMap
+** Fold
+** Type Classes
+* Monoids
+* Monads
+* Parallel
+* Cats Effect
