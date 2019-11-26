@@ -1,4 +1,3 @@
-import cats._
 import cats.implicits._
 
 object Validation {
@@ -11,7 +10,7 @@ object Validation {
   final case class User(name: Name, password: Password, email: Email)
 
   def validate(name: String, password: String, email: String): Either[Message, User] =
-    (validateName(name), validatePassword(password), validateEmail(email)).mapN(User.apply _)
+    (validateName(name), validatePassword(password), validateEmail(email)).parMapN(User.apply _)
 
   def validateName(name: String): Either[Message, Name] =
     if(name.length > 3) Right(Name(name))

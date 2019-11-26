@@ -125,7 +125,7 @@ object JsonWriter {
       JsonString(in)
   }
 
-  implicit def optionJsonWriter[A](implict w: JsonWriter[A]): JsonWriter[Option[A]] =
+  implicit def optionJsonWriter[A](implicit w: JsonWriter[A]): JsonWriter[Option[A]] =
     new JsonWriter[Option[A]] {
       def write(in: Option[A]): Json =
         in match {

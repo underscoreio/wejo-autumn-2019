@@ -1,2 +1,143 @@
 #+TITLE: Wejo Day 4
 * Parallel
+#+BEGIN_SRC scala
+(Option(1), Option(2)).mapN( (a, b) => a + b )
+
+for {
+  a <- Option(1)
+  b <- Option(2)
+} yield a + b
+#+END_SRC
+
+Functor <: Applicative <: Monad
+
+Calling ~mapN~ on a monad gives sequential behaviour.
+
+~parMapN~, ~parTraverse~.
+
+Allows us to choose an applicative instance with different behaviour (usually "parallel") for a given monad.
+* Recap
+** Type classes
+|---------------------+---------------------------|
+| Concept             | Scala Feature             |
+|---------------------+---------------------------|
+| Type class          | trait with type parameter |
+| Type class instance | implicit value            |
+| Type class usage    | implicit parameter        |
+| Type class syntax   | Implicit class            |
+|---------------------+---------------------------|
+*** Implicit Values
+- ~object~, ~val~, ~def~ preceeded with the keyword ~implicit~ and with only implicit parameters if a ~def~
+*** Implicit Parameters
+Can only be one implicit parameter list (in Scala 2), applies to all parameters in the list, must be the last parameter list.
+
+Expresses a constraint on a generic type.
+** Monoid
+Semigroup w/ combine and identity
+Semigroup is combine w/o identity
+- combine is associative
+- identity is x + 0 = x = 0 + x
+
+Parallel programming
+Code reuse
+** Functor
+~map: F[A] (A => B) = F[B]~
+Transforming a value within a context
+Higher-kinded type
+A type constructor
+** Applicative / InvariantMonoidal
+~mapN: (F[A], F[B], ...) (A, B, ...) => D = F[D]~
+and ~pure: A = F[A]~
+Combine independent values in a context
+
+Important: Applicative and InvariantMonoidal are different formulations of the same idea.
+- Applicative is more idiomatic in Haskell
+- InvariantMonoidal is more idiomatic in Scala (~product~)
+** Monad
+~flatMap: F[A] (A => F[B]) = F[B]~
+Transform a value in a context and create a new context
+Express sequential operations in a context
+* Implicit Class
+An implicit class adds ~|+|~ to types that have a ~Monoid~ instance.
+
+An implicit class is a class that starts with the keyword ~implicit~.
+#+BEGIN_SRC scala
+implicit class AmusingIntOps(value: Int) {
+  def `!`: String =
+    (0 to value).map(_ => "!").mkString
+}
+#+END_SRC
+
+If we call a method on an object and that method is not defined, the compiler looks for implicit classes in the lexical scope that define that method and have a constructor that takes an object of the same type as the object we're calling the method on. If it finds such a class it inserts a call to the constructor.
+
+Implicit classes are not top level definitions. They must be wrapped in an object, trait, class, etc.
+
+Implement a method ~times~ on ~Int~. It should accept a function and call that function the given number of times.
+
+~5.times(_ => println("Hi!"))~
+
+#+BEGIN_SRC scala
+implicit class AmusingIntOps(value: Int) {
+  def times[A](f: Int => A): List[A] =
+    (0 to value).map(f).toList
+}
+#+END_SRC
+
+Add a method ~toJson~ to any type that has a ~JsonWriter~.
+[A](value: A)(implicit w: JsonWriter[A])
+* IO
+** Basics
+- Constructing IO
+  #+BEGIN_SRC scala
+  IO(1)
+  IO.apply(1)
+  IO.pure(1)
+
+  def apply[A](a: => A): IO[A]
+  def pure[A](a: A): IO[A]
+  #+END_SRC
+
+  a: => A is a call-by-name parameter.
+  - it means the parameter is not evaluated before the method is called
+
+- Running IO
+- Sequencing IO operations
+  - *pure* operations
+  - *impure* operations
+*** Definitions
+Parallelism: multiple things actually run at the same time
+Concurrency: different actions conceptually happen at the same time
+Asynchronicity: actions that don't happen immediately; don't wait on result
+** Asynchronicity
+- IO.shift
+  Starts async computation
+  scala.concurrent.ExecutionContext.global
+  Thread.currentThread()
+
+  Observe when you shift an IO it runs on a different thread
+- IO.async
+  Receive result from an async computation via a callback
+  IO.async[A](k: ((Either[Throwable, A]) ⇒ Unit) ⇒ Unit): IO[A]
+
+  (Either[Throwable, A]) ⇒ Unit): a callback
+  ((Either[Throwable, A]) ⇒ Unit) ⇒ Unit: a function that takes a callback (a callback handler)
+
+  When we run the IO, async supplies the callback to the callback handler. The handler should call the callback when a value is ready.
+
+  Using ~async~ pass back the thread name from an async computation
+** Concurrency
+- start
+- race & racePair
+- par utilities
+  ~parMapN~ and ~parTraverse~
+** Concurrency Utilities
+- MVar
+- Deferred
+- etc.
+** Resource Management
+- bracket
+- Resource
+** Error Handling
+- handleErrorWith
+- redeem
+* Cats Effect Typeclasses

@@ -35,6 +35,11 @@ object JsonWriter {
         }
     }
 }
+object JsonSyntax {
+  implicit class JsonOps[A](value: A)(implicit w: JsonWriter[A]) {
+    def toJson: Json = w.write(value)
+  }
+}
 
 object Serialize {
   def serialize[A](value: A)(implicit writer: JsonWriter[A]) =
