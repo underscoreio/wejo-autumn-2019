@@ -17,6 +17,7 @@ Clearer understanding of Scala
 2.5 yrs Scala
 Not used Cats much
 FP concepts
+1 year at Wejo
 * Overview
 * Review
 ** Algebraic Data Types
@@ -252,5 +253,77 @@ A type constructor F has a monad if there exists:
 
 Implement a type class instance of ~Monad~ for ~Stream~
 - an implicit value
+* Applicative / Semigroupal
+Combine independent values in a context
+
+Usually use via ~mapN~
+- InvariantMonoidal (~product~) formulation is more idiomatic than Applicative, but they have equal expressive power
+
+#+BEGIN_SRC scala
+(Option(1), Option(2)).mapN( (a, b) => a + b )
+
+for {
+  a <- Option(1)
+  b <- Option(2)
+} yield a + b
+#+END_SRC
+
+Anything we can express with Applicative / Semigroupal / InvariantMonoidal we can express with Monad
+
+Semigroup is Monoid without identity
+- just binary operation
+
+Semigroupal is the "higher kinded" version of semigroup
+
+Kinds are types for types
+- A is a type
+- F[_] (e.g. List, Option, Future, Stream) is a type constructor
+  - takes a type and gives back a type (like a function takes a value and returns a value)
+
+map: F[A] (A => B): F[B]
+#+BEGIN_SRC scala
+implicit val streamMonad: Monad[Stream] {
+  def flatMap ...
+  def pure ...
+
+  def map[A,B](fa: Stream[A])(f: A => B): Stream[B] = {
+    val fab: Stream[A => B] = pure(f)
+
+    // Need Stream[B]
+    // We have a: A
+    // f(a): B
+    // pure: B => Stream[B]
+    flatMap(fa)(a => pure(f(a)))
+  }
+}
+#+END_SRC
+
+
+Name: ________
+Password: ___________
+Email: _________
+
+Name cannot be empty
+Password must > 8 characters, etc.
+Email must look like an email
+
+type Message = List[String]
+
+rawName: String
+validateName: String => Either[Message, Name]
+validatePassword: String => Either[Message, Password]
+validateEmail: String => Either[Message, Email]
+
+validatedName: Either[Message, Name]
+validatedPassword: Either[Message, Password]
+validatedEmail: Either[Message, Email]
+
+(validatedName, validatedPassword, validatedEmail).mapN((name, pwd, email) => User(name, pwd, email))
+
+(F[A], F[B], ...).mapN((A, B, ...) => D): F[D]
 * Parallel
+- Error handling
 * Cats Effect
+- IO
+- Parallelism, concurrency, etc.
+- Resource management (~bracket~)
